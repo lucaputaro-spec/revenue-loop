@@ -1,0 +1,23 @@
+{
+  // Nur lokal (npm run dev). Nicht deployt.
+  // Der Worker hat genau eine Aufgabe: /api/judge, das unscharfe AI-Urteil bei
+  // Grenzfällen. Alles andere läuft im Browser mit Demo-Daten.
+  // Workers AI Free: Beim Überschreiten gibt es Fehler, keine Rechnung. Dann
+  // bleibt der Regel-Score stehen (Fallback in src/judge.ts).
+  "name": "revenue-loop",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-01",
+  "workers_dev": true,
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*"]
+  },
+  "ai": { "binding": "AI" },
+  // Bremse je Besucher: der Browser fragt höchstens 30 Urteile pro Sitzung.
+  "ratelimits": [
+    { "name": "LIMITER", "namespace_id": "4713", "simple": { "limit": 30, "period": 60 } }
+  ],
+  "vars": { "AI_MODEL": "@cf/meta/llama-4-scout-17b-16e-instruct" },
+  "observability": { "enabled": false }
+}
