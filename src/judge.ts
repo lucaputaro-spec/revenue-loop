@@ -82,7 +82,10 @@ export async function judge(env: AiEnv, input: JudgeInput): Promise<JudgeResult>
     const call = env.AI.run(env.AI_MODEL as keyof AiModels, {
       messages: [
         { role: "system", content: RULES },
-        { role: "user", content: `<data>${JSON.stringify(input)}</data>\nHow should the borderline score move?` },
+        // "<" als \u003c maskieren: sonst schließt ein "</data>" in einer Beschreibung
+        // den Datenblock und der Rest liest sich für das Modell wie Anweisung.
+        // JSON.parse liest \u003c wieder als "<", die Daten bleiben gleich.
+        { role: "user", content: `<data>${JSON.stringify(input).replace(/</g, "\\u003c")}</data>\nHow should the borderline score move?` },
       ],
       max_tokens: 80,
       temperature: 0.2,
