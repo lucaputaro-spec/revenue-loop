@@ -15,8 +15,9 @@
   },
   "ai": { "binding": "AI" },
   // Bremse je Besucher: der Browser fragt höchstens 30 Urteile pro Sitzung.
+  // namespace_id ist kontoweit geteilt. Belegt: 4711 GTM OS, 4712 Lead Table + Sync Board, 4713 SDR Radar, 4714 Revenue Loop.
   "ratelimits": [
-    { "name": "LIMITER", "namespace_id": "4713", "simple": { "limit": 30, "period": 60 } }
+    { "name": "LIMITER", "namespace_id": "4714", "simple": { "limit": 30, "period": 60 } }
   ],
   "vars": { "AI_MODEL": "@cf/meta/llama-4-scout-17b-16e-instruct" },
   "observability": { "enabled": false }
