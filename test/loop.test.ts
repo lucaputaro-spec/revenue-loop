@@ -70,4 +70,28 @@ describe("closed loop on the demo", () => {
     const lead = step(d.leads.find((l) => l.listId === listB.id)!, "verified", { emailCheck: "valid" });
     expect(applyTransition(lead, "contacted", { gateReportId: r.report.id, gateReport: r.report, campaignId: "camp-1" }, AT).ok).toBe(false);
   });
+
+  it("rejects list-a report for a list-b lead", async () => {
+    const d = demoData();
+    const budget = createBudget();
+    const [listA, listB] = [d.lists[0]!, d.lists[1]!];
+    const companiesA = listA.companyIds.map((id) => d.companies.find((c) => c.id === id)!);
+    const scored = await scoreList(companiesA, d.wonCustomers, budget, { listId: listA.id });
+    if (!scored.ok) throw new Error(scored.reason);
+    const scores: Record<string, Score> = Object.fromEntries(scored.scores.map((s) => [s.companyId, s]));
+    const gates = runGates({ id: "rep-1", campaign: d.campaign, list: listA, companies: d.companies, contacts: d.contacts, leads: d.leads, scores, targetRoles: d.targetRoles }, budget);
+    if (!gates.ok) throw new Error(gates.reason);
+    expect(gates.report.pass).toBe(true);
+
+    const emails = checkEmails(d.leads.filter((l) => l.listId === listB.id), d.contacts, budget);
+    if (!emails.ok) throw new Error(emails.reason);
+    const valid = emails.results.find((e) => e.emailCheck === "valid")!;
+    const leadB = step(d.leads.find((l) => l.id === valid.leadId)!, "verified", { emailCheck: valid.emailCheck });
+    expect(leadB.listId).toBe(listB.id);
+
+    const r = applyTransition(leadB, "contacted", { gateReportId: gates.report.id, gateReport: gates.report, campaignId: d.campaign.id }, AT);
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.reason).toBe(`invalid evidence: gateReportId (gate report is for ${listA.id}, lead is on ${listB.id})`);
+    expect(inState(leadB, "verified")).toBe(true);
+  });
 });

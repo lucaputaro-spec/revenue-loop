@@ -20,9 +20,9 @@ export const STATES = /** @type {const} */ ([
 /** @typedef {typeof STATES[number]} State */
 
 /**
- * @typedef {{ id: string, pass: boolean }} GateReportRef
+ * @typedef {{ id: string, pass: boolean, listId: string, campaignId: string }} GateReportRef
  * @typedef {Record<string, unknown> & { gateReport?: GateReportRef }} Evidence
- * @typedef {(value: unknown, evidence: Evidence) => string | null} Validator
+ * @typedef {(value: unknown, evidence: Evidence, lead: Lead) => string | null} Validator
  * @typedef {{ from: State, to: State, trigger: string, evidence: Record<string, Validator> }} Transition
  * @typedef {{ from: State, to: State, at: string, evidence: Record<string, unknown> }} HistoryEntry
  * @typedef {{
@@ -35,9 +35,12 @@ export const STATES = /** @type {const} */ ([
 const text = (v) => (typeof v === "string" && v.trim() ? null : "must be text");
 
 /** @type {Validator} */
-const passedGate = (v, ev) => {
+const passedGate = (v, ev, lead) => {
   const report = ev.gateReport;
   if (!report || report.id !== v) return "gate report not found";
+  // Ein bestandener Bericht gilt nur für die Liste und Kampagne, die er geprüft hat.
+  if (report.listId !== lead.listId) return `gate report is for ${report.listId}, lead is on ${lead.listId}`;
+  if (report.campaignId !== ev.campaignId) return "gate report is for another campaign";
   return report.pass === true ? null : "gate report did not pass";
 };
 
@@ -117,7 +120,7 @@ export function applyTransition(lead, to, evidence, at) {
   for (const [key, check] of Object.entries(row.evidence)) {
     const value = evidence[key];
     if (value === undefined || value === null || value === "") return { ok: false, reason: `missing evidence: ${key}` };
-    const problem = check(value, evidence);
+    const problem = check(value, evidence, lead);
     if (problem) return { ok: false, reason: `invalid evidence: ${key} (${problem})` };
     kept[key] = value;
   }

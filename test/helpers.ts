@@ -13,7 +13,7 @@ export function step(lead: Lead, to: string, evidence: Record<string, unknown>):
 export function walk(lead: Lead, path: string[], dealValue = 10000): Lead {
   const evidence: Record<string, Record<string, unknown>> = {
     verified: { emailCheck: "valid" },
-    contacted: { gateReportId: PASSED.id, gateReport: PASSED, campaignId: "camp-1" },
+    contacted: { gateReportId: PASSED.id, gateReport: { ...PASSED, listId: lead.listId, campaignId: "camp-1" }, campaignId: "camp-1" },
     replied: { replyId: "r1" },
     bounced: { bounceCode: "550" },
     positive: { replyClass: "positive" },

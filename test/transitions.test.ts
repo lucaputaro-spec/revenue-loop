@@ -3,7 +3,7 @@ import { applyTransition, createLead, inState, STATES, TERMINAL_STATES, TRANSITI
 
 const AT = "2026-11-24T10:00:00Z";
 const fresh = () => createLead({ listId: "list-a", segment: "SaaS DACH 50–200", companyId: "c1", contactId: "p1" });
-const passed = { id: "rep-1", pass: true };
+const passed = { id: "rep-1", pass: true, listId: "list-a", campaignId: "camp-1" };
 
 function step(lead: Lead, to: string, evidence: Record<string, unknown>): Lead {
   const r = applyTransition(lead, to, evidence, AT);
@@ -40,11 +40,26 @@ describe("transition table", () => {
 
   it("rejects contact when the gate report did not pass, even with an id", () => {
     const verified = step(fresh(), "verified", { emailCheck: "valid" });
-    const r = applyTransition(verified, "contacted", { gateReportId: "rep-2", gateReport: { id: "rep-2", pass: false }, campaignId: "camp-1" }, AT);
+    const r = applyTransition(verified, "contacted", { gateReportId: "rep-2", gateReport: { id: "rep-2", pass: false, listId: "list-a", campaignId: "camp-1" }, campaignId: "camp-1" }, AT);
     expect(r.ok).toBe(false);
     if (!r.ok) expect(r.reason).toContain("gate report did not pass");
     const noReport = applyTransition(verified, "contacted", { gateReportId: "rep-2", campaignId: "camp-1" }, AT);
     expect(noReport.ok).toBe(false);
+  });
+
+  it("rejects a passed report from another list", () => {
+    const verified = step(fresh(), "verified", { emailCheck: "valid" });
+    const r = applyTransition(verified, "contacted", { gateReportId: "rep-1", gateReport: { ...passed, listId: "list-b" }, campaignId: "camp-1" }, AT);
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.reason).toContain("gate report is for list-b, lead is on list-a");
+    expect(inState(verified, "verified")).toBe(true);
+  });
+
+  it("rejects a passed report from another campaign", () => {
+    const verified = step(fresh(), "verified", { emailCheck: "valid" });
+    const r = applyTransition(verified, "contacted", { gateReportId: "rep-1", gateReport: passed, campaignId: "camp-2" }, AT);
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.reason).toContain("gate report is for another campaign");
   });
 
   it("has no exits from end states", () => {
