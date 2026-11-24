@@ -2,10 +2,104 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Revenue Loop</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Revenue Loop | Closed-loop outbound demo</title>
+<meta name="description" content="Every lead moves through a transition table with evidence, campaigns start only after three gates, and every won deal seeds a new lookalike list. Demo data, simulated costs.">
+<link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-<p>Demo data: invented companies, simulated costs, no real outcomes</p>
+<p class="demo-note" id="demo-note" role="note">Demo data: invented companies, simulated costs, no real outcomes</p>
+
+<header class="top">
+  <h1>Revenue Loop</h1>
+  <p class="lede">Each lead moves from list to closed deal through a fixed transition table, and every step needs evidence. Campaigns start only after three gates pass. Every won deal becomes the seed of a new lookalike list, so revenue can be traced back to the list it came from.</p>
+</header>
+
+<main>
+<section class="card" aria-labelledby="budget-title">
+  <h2 id="budget-title">Budget</h2>
+  <div class="budget-bar">
+    <div class="meter" aria-hidden="true"><i id="budget-meter"></i></div>
+    <p id="budget-text"></p>
+  </div>
+  <form id="cap-form" class="row" autocomplete="off">
+    <label for="cap">Session limit in €</label>
+    <input type="number" id="cap" min="0" max="20" step="0.01" required>
+    <button type="submit">Set limit</button>
+    <span class="hint" id="cap-note"></span>
+  </form>
+  <p class="hint" id="cost-note"></p>
+  <details>
+    <summary>Ledger (every simulated charge)</summary>
+    <div id="ledger"></div>
+  </details>
+  <div class="row"><button type="button" class="ghost" id="reset">Reset demo</button></div>
+</section>
+
+<section class="card" aria-labelledby="lists-title">
+  <h2 id="lists-title">Lists</h2>
+  <p class="hint">Score companies against won customers, then check emails. Lists from a won deal show their parent list.</p>
+  <div class="scroll"><table id="lists"></table></div>
+</section>
+
+<section class="card" aria-labelledby="campaign-title">
+  <h2 id="campaign-title">Campaign</h2>
+  <form class="row" id="campaign-form" autocomplete="off">
+    <label for="campaign-list">Send to list</label>
+    <select id="campaign-list"></select>
+  </form>
+  <pre class="template" id="template"></pre>
+  <div class="row">
+    <button type="button" id="run-gates">Run gates</button>
+    <button type="button" id="start-campaign">Start campaign</button>
+  </div>
+  <div id="gate-report"></div>
+  <div id="start-result" aria-live="polite"></div>
+</section>
+
+<section class="card" aria-labelledby="leads-title">
+  <h2 id="leads-title">Leads</h2>
+  <form class="row" autocomplete="off">
+    <label for="lead-filter">Show list</label>
+    <select id="lead-filter"></select>
+  </form>
+  <div class="scroll"><table id="leads"></table></div>
+</section>
+
+<section class="card move" id="move" hidden aria-labelledby="move-title">
+  <h2 id="move-title">Move lead</h2>
+  <p id="move-lead"></p>
+  <form id="move-form" autocomplete="off">
+    <div class="row">
+      <label for="move-to">Move to…</label>
+      <select id="move-to"></select>
+    </div>
+    <p class="hint" id="move-rule"></p>
+    <div id="move-evidence" class="evidence"></div>
+    <div class="row">
+      <button type="submit">Apply</button>
+      <button type="button" class="ghost" id="move-close">Close</button>
+    </div>
+    <p id="move-result" aria-live="polite"></p>
+  </form>
+</section>
+
+<section class="card" aria-labelledby="report-title">
+  <h2 id="report-title">Revenue by list and segment</h2>
+  <p class="hint">Main numbers are meetings, revenue and cost. Reply rate is a side column: replies without revenue do not make a list good.</p>
+  <h3>By list</h3>
+  <div class="scroll"><table id="report-lists"></table></div>
+  <h3>By segment</h3>
+  <div class="scroll"><table id="report-segments"></table></div>
+  <p class="hint" id="report-note"></p>
+</section>
+
+<section class="card" aria-labelledby="log-title">
+  <h2 id="log-title">Activity</h2>
+  <ol id="log" class="log"></ol>
+</section>
+</main>
+
 <script type="module" src="/app.js"></script>
 </body>
 </html>
