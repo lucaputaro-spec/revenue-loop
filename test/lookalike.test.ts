@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createBudget } from "../public/lib/budget.js";
 import { demoData } from "../public/lib/demo.js";
-import { buildLookalikeList, MAX_LOOKALIKES, MIN_SIMILARITY } from "../public/lib/lookalike.js";
+import { buildLookalikeList, MAX_LOOKALIKES, MIN_SIMILARITY, missingLookalikes } from "../public/lib/lookalike.js";
 import { similarity } from "../public/lib/score.js";
 import { inState } from "../public/lib/transitions.js";
 import { TO_WON, walk } from "./helpers";
@@ -54,6 +54,19 @@ describe("lookalike list", () => {
     const r = buildLookalikeList(won, d, d.lists, b);
     expect(r).toMatchObject({ ok: false, reason: "budget" });
     expect(b.ledger()).toEqual([]);
+  });
+
+  it("keeps a refused list buildable until it exists", () => {
+    const { d, won } = wonDemo();
+    const leads = d.leads.map((l) => (l.id === won.id ? won : l));
+    const b = createBudget(0.05);
+    expect(buildLookalikeList(won, d, d.lists, b)).toMatchObject({ ok: false, reason: "budget" });
+    expect(missingLookalikes(leads, d.lists).map((l) => l.id)).toEqual([won.id]);
+
+    expect(b.raiseCap(5)).toEqual({ ok: true });
+    const r = buildLookalikeList(won, d, d.lists, b);
+    if (!r.ok) throw new Error(r.reason);
+    expect(missingLookalikes([...leads, ...r.leads], [...d.lists, r.list])).toEqual([]);
   });
 
   it("only accepts a won lead as seed", () => {

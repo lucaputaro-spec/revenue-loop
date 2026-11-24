@@ -2,7 +2,8 @@
 // - Zustände ändern sich nur über applyTransition(), nie direkt.
 // - Start einer Kampagne nur über canStart(); der Übergang nach contacted
 //   verlangt zusätzlich den bestandenen Bericht als Nachweis.
-// - Nach jedem closed_won baut die Seite sofort die Lookalike-Liste.
+// - Nach jedem closed_won baut die Seite sofort die Lookalike-Liste. Scheitert
+//   das (z. B. Budget-„Nein“), bekommt der Lead einen Knopf zum Nachbauen.
 // - Jede simulierte Abfrage geht über das Budget. Reicht es nicht, fragt die
 //   Seite per confirm(). Bei „Nein“ läuft keine Abfrage und nichts wird gebucht.
 // Inhalte werden nur als Text eingesetzt, nie als HTML.
@@ -10,7 +11,7 @@
 import { COST_NOTE, COSTS, createBudget, HARD_CAP_EUR, MAX_AI_CALLS, toEur } from "./lib/budget.js";
 import { DEMO_NOTE } from "./lib/demo.js";
 import { canStart, checkEmails, runGates } from "./lib/gates.js";
-import { buildLookalikeList } from "./lib/lookalike.js";
+import { buildLookalikeList, missingLookalikes } from "./lib/lookalike.js";
 import { revenueReport } from "./lib/report.js";
 import { scoreList } from "./lib/score.js";
 import { load, reset, save } from "./lib/store.js";
@@ -206,8 +207,16 @@ async function afterWon(lead) {
   } else if (r && r.ok === false) {
     log(`Closed won, but no lookalike list (${r.reason}).`);
   } else {
-    log("Closed won, lookalike list not built (budget not raised).");
+    log("Closed won, lookalike list not built (budget not raised). Use “Build lookalike list” on the lead to retry.");
   }
+}
+
+async function rebuildLookalike(leadId) {
+  const lead = db.leads.find((l) => l.id === leadId);
+  if (!lead) return;
+  await afterWon(lead);
+  persist();
+  render();
 }
 
 /* ---------- Übergang mit Nachweis ---------- */
@@ -410,6 +419,7 @@ function renderLeads() {
   filter.replaceChildren(h("option", { value: "all" }, "All lists"), ...db.lists.map((l) => h("option", { value: l.id }, l.name)));
   filter.value = db.lists.some((l) => l.id === chosen) ? chosen : "all";
   const shown = filter.value === "all" ? db.leads : leadsOf(filter.value);
+  const missing = new Set(missingLookalikes(db.leads, db.lists).map((l) => l.id));
   const head = h("thead", {}, h("tr", {}, ["Company", "Contact", "List", "State", "Score", "Why", ""].map((x) => h("th", {}, x))));
   const body = h(
     "tbody",
@@ -427,7 +437,12 @@ function renderLeads() {
         h("td", {}, h("code", { class: "state" }, lead.state)),
         scoreCell(lead),
         h("td", { class: "why" }, s ? s.reason : "", s?.note ? h("div", { class: "hint" }, s.note) : null),
-        h("td", {}, h("button", { type: "button", class: "small", onclick: () => openMove(lead.id) }, "Move to…")),
+        h(
+          "td",
+          {},
+          h("button", { type: "button", class: "small", onclick: () => openMove(lead.id) }, "Move to…"),
+          missing.has(lead.id) ? h("button", { type: "button", class: "small", onclick: () => rebuildLookalike(lead.id) }, "Build lookalike list") : null,
+        ),
       );
     }),
   );

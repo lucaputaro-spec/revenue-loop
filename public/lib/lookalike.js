@@ -63,3 +63,16 @@ export function buildLookalikeList(wonLead, universe, existingLists, budget) {
   );
   return { ok: true, list, leads, similarity: Object.fromEntries(picked.map((x) => [x.c.id, x.s])) };
 }
+
+/**
+ * Gewonnene Leads, deren Lookalike-Liste noch fehlt (z. B. weil das Budget
+ * nicht erhöht wurde). Der Zustand kommt nur aus den Daten, deshalb gilt das
+ * auch für ältere gespeicherte Stände.
+ * @param {Lead[]} leads
+ * @param {List[]} lists
+ * @returns {Lead[]}
+ */
+export function missingLookalikes(leads, lists) {
+  const seeded = new Set(lists.map((l) => l.seedCompanyId).filter((id) => id !== null));
+  return leads.filter((l) => inState(l, "closed_won") && !seeded.has(l.companyId));
+}
