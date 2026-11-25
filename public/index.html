@@ -16,6 +16,16 @@
 </header>
 
 <main>
+<section class="card try" aria-labelledby="try-title">
+  <h2 id="try-title">Try it in one minute</h2>
+  <ol>
+    <li>Lists: click <b>Score companies</b> and <b>Check emails</b> on List A and List B.</li>
+    <li>Campaign: pick List B, <b>Run gates</b>, then <b>Start campaign</b>. It is blocked, with the reason.</li>
+    <li>Switch to List A, run the gates again and start the campaign.</li>
+    <li>Leads: open <b>Move to…</b> on one List A lead and walk it to <code>closed_won</code>. Try skipping a step: the table refuses it. The won deal seeds a new lookalike list, and the report shows revenue per list.</li>
+  </ol>
+</section>
+
 <section class="card" aria-labelledby="budget-title">
   <h2 id="budget-title">Budget</h2>
   <div class="budget-bar">
@@ -99,6 +109,8 @@
   <ol id="log" class="log"></ol>
 </section>
 </main>
+
+<footer class="foot"><p>Built by Luca Putaro on Cloudflare Workers. Nothing is sent, nothing is stored on a server.</p><p><a href="/imprint.html">Impressum</a> · <a href="/privacy.html">Datenschutz</a></p></footer>
 
 <script type="module" src="/app.js"></script>
 </body>

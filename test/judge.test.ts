@@ -66,6 +66,11 @@ describe("/api/judge", () => {
     expect(res.status).toBe(403);
   });
 
+  it("refuses an opaque origin (null) with 403, not 500", async () => {
+    const res = await call(post(JSON.stringify(input), { origin: "null" }));
+    expect(res.status).toBe(403);
+  });
+
   it("refuses GET with 405", async () => {
     const res = await call(new Request("https://demo.test/api/judge"));
     expect(res.status).toBe(405);

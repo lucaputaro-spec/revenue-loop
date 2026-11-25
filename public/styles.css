@@ -67,3 +67,9 @@ table.compact td, table.compact th { padding: 3px 8px; }
 .log { margin: 0; padding-left: 20px; max-height: 260px; overflow: auto; font-size: 0.875rem; color: var(--soft); }
 details { margin: 8px 0; }
 summary { cursor: pointer; }
+
+/* Fußzeile, Kurzanleitung und Rechtstexte */
+.foot { padding: 0 var(--gutter) 32px; color: var(--soft); font-size: .9rem; }
+.try ol { margin: 0; padding-left: 1.2em; display: grid; gap: 4px; }
+.doc { max-width: 760px; }
+.doc h2 { margin-top: 1.2em; font-size: 1.05rem; }

@@ -18,6 +18,14 @@ function json(data: unknown, status = 200): Response {
   });
 }
 
+function sameHost(origin: string, host: string): boolean {
+  try {
+    return new URL(origin).host === host;
+  } catch {
+    return false;
+  }
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
@@ -25,8 +33,9 @@ export default {
     if (url.pathname !== "/api/judge") return json({ error: "Unknown endpoint." }, 404);
     if (request.method !== "POST") return json({ error: "Use POST." }, 405);
 
+    // Fremde oder kaputte Herkunft (auch "null" aus Sandbox-Frames) wird abgewiesen, nicht 500.
     const origin = request.headers.get("origin");
-    if (origin && new URL(origin).host !== url.host) return json({ error: "Cross-site requests are not allowed." }, 403);
+    if (origin && sameHost(origin, url.host) === false) return json({ error: "Cross-site requests are not allowed." }, 403);
 
     if (env.LIMITER) {
       const key = request.headers.get("cf-connecting-ip") ?? "unknown";
