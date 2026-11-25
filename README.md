@@ -9,6 +9,8 @@ simulated cost budget stops queries before they overspend.
 **Demo data: invented companies, simulated costs, no real outcomes.** All
 domains end in `.example`. Nothing is sent, nothing is bought.
 
+**Live:** https://revenue-loop.lucaputaro.workers.dev — start with the “Try it in one minute” box at the top.
+
 ## What it shows
 
 - **Transition table.** `list_built → verified → contacted → replied →
